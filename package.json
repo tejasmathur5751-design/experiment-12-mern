@@ -1,0 +1,13 @@
+{
+  "name": "mern-task-board",
+  "version": "1.0.0",
+  "description": "Experiment 12 - Full-Stack MERN Application",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "mongoose": "^8.0.0"
+  }
+}
