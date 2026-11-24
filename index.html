@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MERN Stack Application</title>
+<title>Student Task Board</title>
 <link rel="stylesheet" href="style.css">
 <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
@@ -13,151 +13,156 @@
 
 <header>
   <h1>Student Task Board</h1>
-  <p>Full-Stack MERN Application – MongoDB, Express, React, Node.js</p>
+  <p>Task Management Application – MERN Stack</p>
 </header>
 
 <nav>
   <a href="#add">Add Task</a>
   <a href="#board">Task Board</a>
-  <a href="#stack">Tech Stack</a>
 </nav>
 
 <div id="root"></div>
 
-<section id="stack" style="max-width:800px;margin:0 auto 30px auto;padding:0 20px;">
-  <h2 style="color:#2c3e50;border-bottom:2px solid #eee;padding-bottom:8px;">MERN Stack Overview</h2>
-  <div class="stack-row">
-    <div class="stack-card mongo">
-      <h3>M – MongoDB</h3>
-      <p>NoSQL database that stores data in JSON-like documents. Used to store tasks, users and other application data.</p>
-    </div>
-    <div class="stack-card express">
-      <h3>E – Express.js</h3>
-      <p>Backend web framework for Node.js. Handles API routes (GET, POST, PUT, DELETE) and connects to MongoDB.</p>
-    </div>
-    <div class="stack-card react">
-      <h3>R – React.js</h3>
-      <p>Frontend UI library. Components and state management with useState. This Task Board is built with React.</p>
-    </div>
-    <div class="stack-card node">
-      <h3>N – Node.js</h3>
-      <p>JavaScript runtime for the server side. Express runs on Node.js to serve the API and static files.</p>
-    </div>
-  </div>
-
-  <div class="arch-box">
-    <h3>Architecture Flow</h3>
-    <div class="arch-flow">
-      <div class="arch-step react-step">React Frontend</div>
-      <div class="arch-arrow">→ HTTP Request →</div>
-      <div class="arch-step express-step">Express API</div>
-      <div class="arch-arrow">→ Query →</div>
-      <div class="arch-step mongo-step">MongoDB</div>
-    </div>
-  </div>
-</section>
-
 <footer>
-  <p>&copy; 2026 MERN Task Board. Web Design Lab Experiment 12.</p>
+  <p>&copy; 2026 Student Task Board. Web Design Lab Experiment 12.</p>
 </footer>
 
 <script type="text/babel">
 const { useState } = React;
 
 const initialTasks = [
-  { id: 1, title: "Set up MongoDB Atlas", status: "Done", category: "Backend" },
-  { id: 2, title: "Build Express REST API", status: "Done", category: "Backend" },
-  { id: 3, title: "Create React components", status: "In Progress", category: "Frontend" },
-  { id: 4, title: "Deploy to Render", status: "Pending", category: "DevOps" }
+  { id: 1, title: "Set up MongoDB Atlas database", status: "Done", category: "Database" },
+  { id: 2, title: "Create Express API endpoints", status: "Done", category: "Backend" },
+  { id: 3, title: "Build React task components", status: "In Progress", category: "Frontend" },
+  { id: 4, title: "Test cloud deployment", status: "Pending", category: "Deployment" }
 ];
 
 function TaskBoard() {
   const [tasks, setTasks] = useState(() => {
-    try { const s = localStorage.getItem("mern_tasks"); return s ? JSON.parse(s) : initialTasks; }
-    catch(e) { return initialTasks; }
+    try {
+      const saved = localStorage.getItem("mern_tasks");
+      return saved ? JSON.parse(saved) : initialTasks;
+    } catch(e) {
+      return initialTasks;
+    }
   });
+
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("Frontend");
   const [filter, setFilter] = useState("All");
 
-  function persist(list) {
-    setTasks(list);
-    try { localStorage.setItem("mern_tasks", JSON.stringify(list)); } catch(e) {}
+  function saveTasks(updatedList) {
+    setTasks(updatedList);
+    try {
+      localStorage.setItem("mern_tasks", JSON.stringify(updatedList));
+    } catch(e) {}
   }
 
-  function addTask(e) {
+  function handleAddTask(e) {
     e.preventDefault();
     if (!title.trim()) return;
-    persist([...tasks, { id: Date.now(), title: title.trim(), status: "Pending", category }]);
+    const newTask = {
+      id: Date.now(),
+      title: title.trim(),
+      status: "Pending",
+      category: category
+    };
+    saveTasks([...tasks, newTask]);
     setTitle("");
   }
 
-  function changeStatus(id, status) {
-    persist(tasks.map(t => t.id === id ? { ...t, status } : t));
+  function handleStatusChange(id, newStatus) {
+    saveTasks(tasks.map(t => t.id === id ? { ...t, status: newStatus } : t));
   }
 
-  function deleteTask(id) {
-    if (confirm("Remove this task?")) persist(tasks.filter(t => t.id !== id));
+  function handleDeleteTask(id) {
+    if (confirm("Delete this task?")) {
+      saveTasks(tasks.filter(t => t.id !== id));
+    }
   }
 
   const statuses = ["All", "Pending", "In Progress", "Done"];
-  const shown = filter === "All" ? tasks : tasks.filter(t => t.status === filter);
+  const visibleTasks = filter === "All" ? tasks : tasks.filter(t => t.status === filter);
 
   return (
-    <div style={{ maxWidth: "800px", margin: "0 auto", padding: "0 20px 30px" }}>
+    <div style={{ maxWidth: "750px", margin: "25px auto", padding: "0 20px" }}>
+      {/* Add Task Form */}
       <div className="form-panel" id="add">
-        <h2>Add New Task</h2>
-        <form onSubmit={addTask} style={{ display:"flex", gap:"10px", flexWrap:"wrap" }}>
+        <h2>Add a Task</h2>
+        <form onSubmit={handleAddTask} style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
           <input
-            type="text" placeholder="Task title..."
-            value={title} onChange={e => setTitle(e.target.value)}
-            style={{ flex:1, minWidth:"180px", padding:"9px 10px", border:"1px solid #bbb", borderRadius:"4px", fontSize:"14px" }}
+            type="text"
+            placeholder="Enter task description..."
+            value={title}
+            onChange={e => setTitle(e.target.value)}
+            style={{ flex: 1, minWidth: "180px", padding: "9px 10px", border: "1px solid #bbb", borderRadius: "4px", fontSize: "14px" }}
             required
           />
-          <select value={category} onChange={e => setCategory(e.target.value)}
-            style={{ padding:"9px", border:"1px solid #bbb", borderRadius:"4px", fontSize:"14px" }}>
+          <select
+            value={category}
+            onChange={e => setCategory(e.target.value)}
+            style={{ padding: "9px", border: "1px solid #bbb", borderRadius: "4px", fontSize: "14px" }}
+          >
             <option>Frontend</option>
             <option>Backend</option>
             <option>Database</option>
-            <option>DevOps</option>
+            <option>Deployment</option>
           </select>
-          <button type="submit" style={{ padding:"9px 20px", background:"#2c3e50", color:"white", border:"none", borderRadius:"4px", cursor:"pointer" }}>
+          <button type="submit" style={{ padding: "9px 20px", background: "#2c3e50", color: "white", border: "none", borderRadius: "4px", cursor: "pointer", fontSize: "14px" }}>
             Add Task
           </button>
         </form>
       </div>
 
+      {/* Task List Board */}
       <div className="board-panel" id="board">
-        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:"14px" }}>
-          <h2 style={{ margin:0 }}>Task Board ({shown.length} tasks)</h2>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px", flexWrap: "wrap", gap: "10px" }}>
+          <h2 style={{ margin: 0 }}>My Tasks ({visibleTasks.length})</h2>
           <div>
             {statuses.map(s => (
-              <button key={s} onClick={() => setFilter(s)}
-                style={{ margin:"0 3px", padding:"5px 12px", fontSize:"12px", cursor:"pointer",
-                  background: filter === s ? "#2c3e50" : "#eee", color: filter === s ? "white" : "#333",
-                  border:"none", borderRadius:"12px" }}>
+              <button
+                key={s}
+                onClick={() => setFilter(s)}
+                style={{
+                  margin: "0 3px",
+                  padding: "5px 12px",
+                  fontSize: "12px",
+                  cursor: "pointer",
+                  background: filter === s ? "#2c3e50" : "#eee",
+                  color: filter === s ? "white" : "#333",
+                  border: "none",
+                  borderRadius: "12px"
+                }}
+              >
                 {s}
               </button>
             ))}
           </div>
         </div>
 
-        {shown.length === 0 ? <p style={{ color:"#aaa", textAlign:"center", padding:"20px" }}>No tasks found.</p> : (
-          shown.map(task => (
-            <div key={task.id} className={`task-card status-${task.status.replace(" ","-")}`}>
+        {visibleTasks.length === 0 ? (
+          <p style={{ color: "#888", textAlign: "center", padding: "20px" }}>No tasks in this category.</p>
+        ) : (
+          visibleTasks.map(task => (
+            <div key={task.id} className={`task-card status-${task.status.replace(" ", "-")}`}>
               <div className="task-info">
                 <h4>{task.title}</h4>
                 <span className="cat-tag">{task.category}</span>
               </div>
               <div className="task-actions">
-                <select value={task.status} onChange={e => changeStatus(task.id, e.target.value)}
-                  style={{ padding:"5px", fontSize:"12px", border:"1px solid #bbb", borderRadius:"4px" }}>
+                <select
+                  value={task.status}
+                  onChange={e => handleStatusChange(task.id, e.target.value)}
+                  style={{ padding: "5px", fontSize: "12px", border: "1px solid #bbb", borderRadius: "4px" }}
+                >
                   <option>Pending</option>
                   <option>In Progress</option>
                   <option>Done</option>
                 </select>
-                <button onClick={() => deleteTask(task.id)}
-                  style={{ padding:"5px 10px", background:"#d9534f", color:"white", border:"none", borderRadius:"4px", fontSize:"12px", cursor:"pointer" }}>
+                <button
+                  onClick={() => handleDeleteTask(task.id)}
+                  style={{ padding: "5px 10px", background: "#d9534f", color: "white", border: "none", borderRadius: "4px", fontSize: "12px", cursor: "pointer" }}
+                >
                   Delete
                 </button>
               </div>
